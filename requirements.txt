@@ -4,5 +4,5 @@ Flask-SocketIO==5.3.6
 simple-websocket==0.10.1
 Pillow==10.4.0
 gunicorn==21.2.0
-eventlet==0.33.3
+eventlet==0.37.0
 setuptools
