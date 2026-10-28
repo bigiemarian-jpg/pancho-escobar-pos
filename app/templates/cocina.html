@@ -1,0 +1,402 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>KDS y Despacho - Pancho Escobar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        /* ⏱️ BARRA DE TIEMPO Y URGENCIA KDS */
+        .order-timer-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+        .order-timer-progress {
+            height: 100%;
+            width: 15%;
+            transition: width 1s linear, background-color 0.3s ease;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #070707;
+            color: #ffffff;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: 50px;
+        }
+        .brand-header {
+            background: linear-gradient(145deg, #181818, #0e0e0e);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-top: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            padding: 25px 20px;
+            margin-bottom: 30px;
+        }
+        .order-card {
+            position: relative;
+            background: linear-gradient(145deg, #151515, #0a0a0a);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 22px;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.85), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+        .order-card.pendiente { border-left: 6px solid #FF4757; }
+        .order-card.preparacion { border-left: 6px solid #FFD700; }
+        .order-card.listo { border-left: 6px solid #2ecc71; }
+        .order-card.en-camino { border-left: 6px solid #f39c12; }
+        .order-card.delivery-highlight {
+            border: 2px solid #ffaa00;
+            box-shadow: 0 20px 45px rgba(255, 170, 0, 0.3), inset 0 1px 3px rgba(255,215,0,0.4);
+        }
+        .order-number {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #FFD700;
+            text-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
+        }
+        .list-group-item {
+            background-color: rgba(0, 0, 0, 0.3) !important;
+            border-color: rgba(255, 255, 255, 0.06) !important;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+        .btn-accion {
+            font-weight: 900;
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 12px;
+            text-transform: uppercase;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.25);
+        }
+        .badge {
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        
+        <!-- 🔊 BOTÓN DE ACTIVACIÓN DE AUDIO -->
+        <div id="audio-banner" class="alert alert-warning text-center fw-bold py-3 mb-3 shadow-lg rounded-4" style="cursor: pointer; background: linear-gradient(145deg, #ffc107, #d39e00); color: #000; border: none;">
+            🔔 Haz clic aquí para <span class="text-decoration-underline">activar las alertas sonoras</span> en este dispositivo
+        </div>
+
+        <header class="brand-header text-center">
+            <h1 class="text-warning fw-bold m-0 text-uppercase">🍳 KDS & Despacho - Cocina</h1>
+            <p class="text-muted small m-0 mt-1">Control total de pedidos: Pendientes, Preparación, Listos y En Camino</p>
+        </header>
+
+        <div class="row g-4 px-2" id="pedidos-cocina-container">
+            <div class="col-12 text-center text-muted py-5">
+                <h4 class="fw-bold">Cargando pedidos activos...</h4>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        // ⚡ Conexión Socket.IO optimizada y global
+        const socket = io({
+            transports: ['websocket', 'polling']
+        });
+
+        let audioCtx = null;
+        let sonidoActivado = false;
+
+        // ⚡ LISTENERS DE SOCKET.IO GLOBALES (Prioritarios para tiempo real instantáneo)
+        socket.on('connect', () => {
+            console.log("🟢 Conectado al servidor Socket.IO con ID:", socket.id);
+        });
+
+        socket.on('nuevo_pedido', function(data) {
+            console.log("🔥 Evento 'nuevo_pedido' recibido:", data);
+            cargarPedidosCocina();
+            
+            if (data && data.tipo_entrega === 'Delivery') {
+                reproducirAlertaDelivery();
+            } else {
+                reproducirAlertaSonora();
+            }
+        });
+
+        socket.on('actualizacion_estado', function(data) {
+            console.log("⚡ Evento 'actualizacion_estado' recibido:", data);
+            cargarPedidosCocina();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarPedidosCocina();
+
+            const banner = document.getElementById('audio-banner');
+            if (banner) {
+                banner.addEventListener('click', () => {
+                    inicializarAudioContext();
+                });
+            }
+        });
+
+        function inicializarAudioContext() {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                sonidoActivado = true;
+                
+                const banner = document.getElementById('audio-banner');
+                if (banner) {
+                    banner.className = "alert alert-success text-center fw-bold py-2 mb-3 shadow rounded-4";
+                    banner.innerHTML = "✅ Alertas sonoras activadas correctamente";
+                    setTimeout(() => { banner.style.display = 'none'; }, 3000);
+                }
+
+                reproducirAlertaSonora();
+            } catch (e) {
+                console.error("Error al inicializar audio:", e);
+            }
+        }
+
+        async function cargarPedidosCocina() {
+            try {
+                const res = await fetch('/api/pedidos/activos');
+                const data = await res.json();
+                
+                const contenedor = document.getElementById('pedidos-cocina-container');
+                if (!contenedor) return;
+                
+                contenedor.innerHTML = '';
+
+                let pedidos = Array.isArray(data) ? data : [];
+                const pedidosActivos = pedidos.filter(p => p.estado === 'Pendiente' || p.estado === 'Preparacion' || p.estado === 'Listo' || p.estado === 'En Camino');
+
+                if (pedidosActivos.length === 0) {
+                    contenedor.innerHTML = `
+                        <div class="col-12 text-center py-5">
+                            <h3 class="text-muted fw-bold">🎉 ¡Todo al día! No hay pedidos activos en este momento.</h3>
+                        </div>`;
+                    return;
+                }
+
+                pedidosActivos.forEach(p => {
+                    let itemsHtml = '';
+                    let itemsArray = p.items || [];
+                    
+                    itemsArray.forEach(item => {
+                        const nombreProducto = item.nombre_producto || item.nombre || 'Producto';
+                        const detallePersonalizacion = item.personalizacion || item.notas || 'Estándar';
+                        
+                        itemsHtml += `<li class="list-group-item text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">${nombreProducto}</span>
+                                <span class="badge bg-warning text-dark fs-6 fw-bold">x${item.cantidad}</span>
+                            </div>
+                            <small class="text-warning fw-bold d-block mt-1">📝 ${detallePersonalizacion}</small>
+                        </li>`;
+                    });
+
+                    let claseCard = 'pendiente';
+                    let badgeColor = 'bg-danger text-white';
+
+                    if (p.estado === 'Preparacion') {
+                        claseCard = 'preparacion';
+                        badgeColor = 'bg-warning text-dark';
+                    } else if (p.estado === 'Listo') {
+                        claseCard = 'listo';
+                        badgeColor = 'bg-success text-white';
+                    } else if (p.estado === 'En Camino') {
+                        claseCard = 'en-camino';
+                        badgeColor = 'bg-info text-dark';
+                    }
+
+                    let esDelivery = p.tipo_entrega === 'Delivery';
+                    if (esDelivery) {
+                        claseCard += ' delivery-highlight';
+                    }
+
+                    let badgeEntrega = '';
+                    if (p.tipo_entrega === 'Para Comer Aquí') {
+                        badgeEntrega = '<span class="badge bg-info text-dark fw-bold mb-2">🍽️ Para Comer Aquí</span>';
+                    } else if (p.tipo_entrega === 'Para Llevar') {
+                        badgeEntrega = '<span class="badge bg-secondary text-white fw-bold mb-2">🛍️ Para Llevar</span>';
+                    } else if (esDelivery) {
+                        badgeEntrega = `<span class="badge bg-warning text-dark fw-bold mb-2">🛵 DELIVERY (${p.zona_envio || 'Estándar'})</span>`;
+                    } else {
+                        badgeEntrega = `<span class="badge bg-dark text-muted fw-bold mb-2">📦 ${p.tipo_entrega || 'General'}</span>`;
+                    }
+
+                    let botonAccion = '';
+                    if (p.estado === 'Pendiente') {
+                        botonAccion = `<button onclick="cambiarEstado(${p.id}, 'Preparacion')" class="btn btn-warning btn-accion w-100 text-dark">👨‍🍳 Iniciar Preparación</button>`;
+                    } else if (p.estado === 'Preparacion') {
+                        botonAccion = `<button onclick="cambiarEstado(${p.id}, 'Listo')" class="btn btn-success btn-accion w-100 text-white">🔔 Marcar como Listo</button>`;
+                    } else if (p.estado === 'Listo') {
+                        if (esDelivery) {
+                            botonAccion = `
+                                <div class="d-flex gap-2">
+                                    <button onclick="cambiarEstado(${p.id}, 'En Camino')" class="btn btn-warning btn-accion w-50 text-dark" style="font-size: 0.75rem;">🛵 En Camino</button>
+                                    <button onclick="cambiarEstado(${p.id}, 'Entregado')" class="btn btn-outline-light btn-accion w-50 text-white" style="font-size: 0.75rem;">✅ Entregado</button>
+                                </div>`;
+                        } else {
+                            botonAccion = `<button onclick="cambiarEstado(${p.id}, 'Entregado')" class="btn btn-outline-light btn-accion w-100 text-white">✅ Entregado / Limpiar</button>`;
+                        }
+                    } else if (p.estado === 'En Camino') {
+                        botonAccion = `<button onclick="cambiarEstado(${p.id}, 'Entregado')" class="btn btn-success btn-accion w-100 text-white">✅ Marcar como Entregado</button>`;
+                    }
+
+                    let cardIdTime = `timer-prog-${p.id}`;
+
+                    contenedor.innerHTML += `
+                        <div class="col-md-4 col-lg-3" id="pedido-${p.id}">
+                            <div class="card order-card ${claseCard} p-3 h-100 d-flex flex-column justify-content-between">
+                                <div class="order-timer-bar">
+                                    <div id="${cardIdTime}" class="order-timer-progress bg-success" style="width: 15%;"></div>
+                                </div>
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-2 mt-1">
+                                        <span class="order-number">${p.numero_orden}</span>
+                                        <span class="badge ${badgeColor} text-uppercase">${p.estado}</span>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        ${badgeEntrega}
+                                        ${esDelivery && p.direccion_envio ? `<div class="p-2 rounded bg-black bg-opacity-50 border border-warning border-opacity-50 mt-1"><small class="text-warning fw-bold d-block">📍 ENVIAR A:</small><span class="text-white fw-bold small">${p.direccion_envio}</span></div>` : ''}
+                                    </div>
+
+                                    <h5 class="text-light mb-3 fs-6">👤 Cliente: <strong class="text-white">${p.cliente_nombre}</strong></h5>
+                                    <ul class="list-group mb-3 p-0">
+                                        ${itemsHtml}
+                                    </ul>
+                                </div>
+                                <div class="mt-2">
+                                    ${botonAccion}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                console.error("Error al cargar cocina:", error);
+            }
+        }
+
+        async function cambiarEstado(id, nuevoEstado) {
+            try {
+                let estadoEnviar = nuevoEstado.trim();
+                if (estadoEnviar.toLowerCase() === 'en camino') {
+                    estadoEnviar = 'En Camino';
+                }
+
+                const res = await fetch(`/api/pedidos/${id}/estado`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ estado: estadoEnviar })
+                });
+
+                if (res.ok) {
+                    cargarPedidosCocina();
+                } else {
+                    let errData = await res.json().catch(() => ({}));
+                    console.error("Error del servidor al cambiar estado:", errData);
+                    alert(`Error al actualizar el estado: ${errData.error || 'Desconocido'}`);
+                }
+            } catch (error) {
+                console.error("Error de red:", error);
+                alert("Error de conexión al intentar actualizar el estado.");
+            }
+        }
+
+        function reproducirAlertaSonora() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } catch(e) {
+                console.log("Error al reproducir audio:", e);
+            }
+        }
+
+        function reproducirAlertaDelivery() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const now = audioCtx.currentTime;
+                [0, 0.25, 0.5].forEach((delay, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(idx === 1 ? 1000 : 750, now + delay);
+                    gain.gain.setValueAtTime(0.3, now + delay);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.2);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.start(now + delay);
+                    osc.stop(now + delay + 0.2);
+                });
+            } catch (e) {
+                reproducirAlertaSonora();
+            }
+        }
+
+        // ⏱️ Actualizador dinámico de barras de urgencia cada 5 segundos
+        setInterval(() => {
+            document.querySelectorAll('.order-timer-progress').forEach(bar => {
+                let currentWidth = parseFloat(bar.style.width) || 15;
+                if (currentWidth < 100) {
+                    currentWidth += 3;
+                    bar.style.width = currentWidth + '%';
+                    
+                    if (currentWidth > 75) {
+                        bar.className = 'order-timer-progress bg-danger';
+                    } else if (currentWidth > 40) {
+                        bar.className = 'order-timer-progress bg-warning';
+                    }
+                }
+            });
+        }, 5000);
+
+        // 🔄 Respaldo automático de seguridad cada 4 segundos (Garantiza sincronización total)
+        setInterval(() => {
+            cargarPedidosCocina();
+        }, 4000);
+    </script>
+</body>
+</html>

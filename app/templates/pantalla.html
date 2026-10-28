@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pancho Escobar - Pantalla de Turnos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+    <style>
+        
+        .neon-slogan {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.35rem;
+            letter-spacing: 2px;
+            color: #ff9f1a;
+            text-transform: uppercase;
+            text-shadow: 
+                0 0 5px rgba(255, 159, 26, 0.6),
+                0 0 10px rgba(255, 159, 26, 0.5),
+                0 0 20px rgba(255, 115, 0, 0.4),
+                0 0 40px rgba(255, 115, 0, 0.2);
+        }
+        
+        
+        :root {
+            --bg-main: #08080a;
+            --bg-surface: #101114;
+            --bg-card: #15161c;
+            --prep-accent: #f59e0b;
+            --prep-glow: rgba(245, 158, 11, 0.35);
+            --ready-accent: #10b981;
+            --ready-bright: #34d399;
+            --ready-glow: rgba(16, 185, 129, 0.45);
+            --ready-border: #059669;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        html, body {
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Ambient subtle background glow */
+        .ambient-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background: 
+                radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 20% 80%, rgba(245, 158, 11, 0.06) 0%, transparent 45%);
+            z-index: 0;
+        }
+
+        /* App Wrapper */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 12px 18px 16px 18px;
+            gap: 12px;
+        }
+
+        /* 🌟 TOP COMPACT STATUS BAR */
+        .top-navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            background: rgba(18, 19, 24, 0.85);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+            flex-shrink: 0;
+        }
+
+        .brand-badge {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-weight: 900;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .brand-logo {
+            height: 68px;
+            width: auto;
+            max-width: none;
+            object-fit: contain;
+            filter: brightness(1.4) contrast(1.7) drop-shadow(0 0 16px rgba(255, 193, 116, 0.95));
+            animation: miniBunFloat 2.4s ease-in-out infinite;
+        }
+
+        @keyframes miniBunFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-3px) rotate(4deg); }
+        }
+
+        .live-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .live-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 10px #22c55e;
+            animation: livePulse 1.8s infinite;
+        }
+
+        @keyframes livePulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.35); opacity: 0.6; }
+        }
+
+        .clock-display {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            letter-spacing: 1px;
+        }
+
+        /* 📺 MAIN DASHBOARD SPLIT */
+        .dashboard-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 44% 56%;
+            gap: 16px;
+            min-height: 0;
+        }
+
+        /* SECTION COLUMN */
+        .order-column {
+            background: rgba(16, 17, 22, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 0;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .column-prep {
+            border-top: 4px solid var(--prep-accent);
+        }
+
+        .column-ready {
+            border-top: 4px solid var(--ready-bright);
+            background: linear-gradient(180deg, rgba(16, 28, 22, 0.96) 0%, rgba(12, 18, 15, 0.98) 100%);
+            border: 1.5px solid rgba(16, 185, 129, 0.35);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.9), inset 0 0 25px rgba(16, 185, 129, 0.05);
+        }
+
+        /* COLUMN HEADERS */
+        .column-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+
+        .header-prep {
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .header-ready {
+            background: rgba(16, 185, 129, 0.18);
+            border: 1px solid rgba(16, 185, 129, 0.45);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+        }
+
+        .header-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-icon {
+            font-size: 1.4rem;
+        }
+
+        .header-title {
+            font-size: 1.35rem;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        .header-prep .header-title {
+            color: #fbbf24;
+            text-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+        }
+
+        .header-ready .header-title {
+            color: #6ee7b7;
+            text-shadow: 0 0 16px rgba(16, 185, 129, 0.6);
+        }
+
+        .count-pill {
+            font-size: 0.9rem;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-family: 'Space Grotesk', monospace;
+        }
+
+        .pill-prep {
+            background: rgba(245, 158, 11, 0.25);
+            color: #fef3c7;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .pill-ready {
+            background: #10b981;
+            color: #042f1a;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+        }
+
+        /* 📋 CARDS GRID AREA */
+        .cards-container {
+            flex: 1;
+            display: grid;
+            gap: 12px;
+            align-content: start;
+            overflow: hidden;
+        }
+
+        .prep-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .ready-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        /* ⏳ CARD: EN PREPARACIÓN */
+        .card-prep {
+            background: linear-gradient(145deg, #181920, #111216);
+            border-radius: 14px;
+            padding: 12px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-left: 5px solid var(--prep-accent);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s ease;
+        }
+
+        .order-num-prep {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #fbbf24;
+            line-height: 1;
+            letter-spacing: -0.5px;
+            text-shadow: 0 0 14px rgba(245, 158, 11, 0.35);
+        }
+
+        .client-info-prep {
+            margin-top: 4px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 140px;
+        }
+
+        .status-badge-prep {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #fde68a;
+            background: rgba(245, 158, 11, 0.15);
+            padding: 4px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .spin-cooking {
+            display: inline-block;
+            animation: spin 3s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 🌭✨ CARD: LISTOS PARA RETIRAR */
+        .card-ready {
+            background: linear-gradient(135deg, #0e291e 0%, #071710 100%);
+            border-radius: 16px;
+            padding: 12px 16px;
+            border: 2px solid var(--ready-bright);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8), 0 0 20px rgba(16, 185, 129, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            animation: cardAppear 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes cardAppear {
+            0% { transform: scale(0.85); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .card-ready::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(52, 211, 153, 0.12) 0%, transparent 60%);
+            pointer-events: none;
+            animation: readyAura 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes readyAura {
+            0% { transform: translate(-10%, -10%); }
+            100% { transform: translate(10%, 10%); }
+        }
+
+        .ready-info-left {
+            position: relative;
+            z-index: 2;
+        }
+
+        .order-num-ready {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: #34d399;
+            line-height: 1;
+            letter-spacing: -0.5px;
+            text-shadow: 0 0 20px rgba(52, 211, 153, 0.7);
+        }
+
+        .client-info-ready {
+            margin-top: 4px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
+        }
+
+        .ready-tag-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #10b981;
+            color: #032b17;
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 50px;
+            margin-top: 5px;
+            letter-spacing: 0.8px;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+
+        /* 🌭 ULTRA ANIMATED HOT-DOG MASCOT CONTAINER */
+        .hotdog-mascot-wrapper {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 96px;
+            height: 84px;
+        }
+
+        .hotdog-avatar {
+            width: 80px;
+            height: 60px;
+            animation: hotdogDance 1.1s ease-in-out infinite alternate;
+            transform-origin: bottom center;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 12px rgba(251, 191, 36, 0.45));
+        }
+
+        @keyframes hotdogDance {
+            0% { transform: translateY(0) rotate(-6deg) scale(1, 1); }
+            50% { transform: translateY(-8px) rotate(0deg) scale(0.96, 1.05); }
+            100% { transform: translateY(0) rotate(6deg) scale(1, 1); }
+        }
+
+        .steam-container {
+            position: absolute;
+            top: -14px;
+            display: flex;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .steam-puff {
+            width: 5px;
+            height: 14px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            filter: blur(1.5px);
+            animation: steamRise 1.4s ease-out infinite;
+        }
+
+        .steam-puff:nth-child(2) { animation-delay: 0.4s; height: 18px; }
+        .steam-puff:nth-child(3) { animation-delay: 0.8s; height: 12px; }
+
+        @keyframes steamRise {
+            0% { opacity: 0; transform: translateY(6px) scale(0.6) rotate(0deg); }
+            40% { opacity: 0.8; }
+            100% { opacity: 0; transform: translateY(-16px) scale(1.4) rotate(15deg); }
+        }
+
+        .sparkle-burst {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #fde047;
+            clip-path: polygon(50% 0%, 65% 35%, 100% 50%, 65% 65%, 50% 100%, 35% 65%, 0% 50%, 35% 35%);
+            animation: sparkleSpin 1.8s ease-in-out infinite;
+        }
+
+        .sparkle-1 { top: 2px; right: 0; animation-delay: 0.2s; }
+        .sparkle-2 { bottom: 10px; left: -2px; animation-delay: 0.9s; }
+
+        @keyframes sparkleSpin {
+            0%, 100% { transform: scale(0.3) rotate(0deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(90deg); opacity: 1; filter: drop-shadow(0 0 6px #fde047); }
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            color: #64748b;
+            font-weight: 700;
+            font-size: 1.05rem;
+            text-align: center;
+            gap: 10px;
+        }
+
+        .empty-icon {
+            font-size: 2.2rem;
+            opacity: 0.4;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-bg"></div>
+
+    <div class="app-container">
+
+        <!-- 🌟 BARRA SUPERIOR CON LOGO OFICIAL -->
+        <header class="top-navbar">
+            <div class="brand-badge">
+                <img src="{{ url_for('static', filename='uploads/logo.png') }}" alt="Pancho Escobar" class="brand-logo" onerror="this.src='/static/uploads/logo_pancho.png'">
+                <span class="neon-slogan">LO RICO ... MANCHA !!</span>
+            </div>
+
+            <div class="live-status">
+                <span class="live-dot"></span>
+                <span>PANTALLA DE TURNOS EN VIVO</span>
+            </div>
+
+            <div class="clock-display" id="live-clock">
+                --:--:--
+            </div>
+        </header>
+
+        <!-- 📺 TABLERO PRINCIPAL -->
+        <main class="dashboard-grid">
+            
+            <!-- COLUMNA 1: EN PREPARACIÓN -->
+            <section class="order-column column-prep">
+                <div class="column-header header-prep">
+                    <div class="header-title-wrap">
+                        <span class="header-icon">⏳</span>
+                        <h2 class="header-title">En Preparación</h2>
+                    </div>
+                    <div class="count-pill pill-prep" id="count-prep">0 PEDIDOS</div>
+                </div>
+
+                <div class="cards-container prep-grid" id="container-prep"></div>
+            </section>
+
+            <!-- COLUMNA 2: ¡LISTOS PARA RETIRAR! -->
+            <section class="order-column column-ready">
+                <div class="column-header header-ready">
+                    <div class="header-title-wrap">
+                        <span class="header-icon">🔔</span>
+                        <h2 class="header-title">¡Listos para Retirar!</h2>
+                    </div>
+                    <div class="count-pill pill-ready" id="count-ready">0 LISTOS</div>
+                </div>
+
+                <div class="cards-container ready-grid" id="container-ready"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- AUDIO & SOCKET SCRIPT -->
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            const clockEl = document.getElementById('live-clock');
+            if (clockEl) clockEl.textContent = `${h}:${m}:${s}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function getAnimatedHotDogSVG() {
+            return `
+            <div class="hotdog-mascot-wrapper">
+                <div class="steam-container">
+                    <div class="steam-puff"></div>
+                    <div class="steam-puff"></div>
+                    <div class="steam-puff"></div>
+                </div>
+                <div class="sparkle-burst sparkle-1"></div>
+                <div class="sparkle-burst sparkle-2"></div>
+                
+                <svg class="hotdog-avatar" viewBox="0 0 160 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse cx="80" cy="98" rx="60" ry="8" fill="#000000" fill-opacity="0.45"/>
+                    <path d="M22 68C22 52 38 48 80 48C122 48 138 52 138 68C138 84 120 92 80 92C40 92 22 84 22 68Z" fill="url(#bunGradient)"/>
+                    <path d="M24 67C26 80 45 88 80 88C115 88 134 80 136 67" stroke="#b45309" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M12 60C10 46 25 40 40 42L120 42C135 40 150 46 148 60C146 72 132 76 116 74L44 74C28 76 14 72 12 60Z" fill="url(#sausageGradient)"/>
+                    <line x1="42" y1="46" x2="38" y2="70" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round" opacity="0.65"/>
+                    <line x1="65" y1="45" x2="61" y2="71" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round" opacity="0.65"/>
+                    <line x1="88" y1="45" x2="84" y2="71" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round" opacity="0.65"/>
+                    <line x1="110" y1="46" x2="106" y2="70" stroke="#7f1d1d" stroke-width="2.5" stroke-linecap="round" opacity="0.65"/>
+                    <line x1="128" y1="48" x2="125" y2="68" stroke="#7f1d1d" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+                    <path d="M26 48C45 44 115 44 134 48" stroke="#fca5a5" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+                    <path d="M25 57 Q 35 46, 45 57 T 65 57 T 85 57 T 105 57 T 125 57 T 138 56" stroke="#fbbf24" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 2px 3px rgba(180, 83, 9, 0.6));"/>
+                    <path d="M25 57 Q 35 46, 45 57 T 65 57 T 85 57 T 105 57 T 125 57 T 138 56" stroke="#fef08a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="73" cy="54" r="3.2" fill="#18181b"/>
+                    <circle cx="74" cy="53" r="1" fill="#ffffff"/>
+                    <circle cx="91" cy="54" r="3.2" fill="#18181b"/>
+                    <circle cx="92" cy="53" r="1" fill="#ffffff"/>
+                    <path d="M79 59 Q 82 64, 85 59" stroke="#18181b" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="67" cy="58" r="2.5" fill="#f87171" opacity="0.8"/>
+                    <circle cx="97" cy="58" r="2.5" fill="#f87171" opacity="0.8"/>
+                    <ellipse cx="40" cy="78" rx="2" ry="1.2" fill="#fef3c7" transform="rotate(-15 40 78)"/>
+                    <ellipse cx="65" cy="82" rx="2" ry="1.2" fill="#fef3c7" transform="rotate(20 65 82)"/>
+                    <ellipse cx="95" cy="83" rx="2" ry="1.2" fill="#fef3c7" transform="rotate(-10 95 83)"/>
+                    <ellipse cx="120" cy="78" rx="2" ry="1.2" fill="#fef3c7" transform="rotate(25 120 78)"/>
+                    <defs>
+                        <linearGradient id="bunGradient" x1="80" y1="48" x2="80" y2="92" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#f59e0b"/>
+                            <stop offset="0.65" stop-color="#d97706"/>
+                            <stop offset="1" stop-color="#b45309"/>
+                        </linearGradient>
+                        <linearGradient id="sausageGradient" x1="80" y1="40" x2="80" y2="76" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#ef4444"/>
+                            <stop offset="0.5" stop-color="#dc2626"/>
+                            <stop offset="1" stop-color="#991b1b"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            `;
+        }
+
+        let audioCtx = null;
+        function playChime() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const now = audioCtx.currentTime;
+                
+                const osc1 = audioCtx.createOscillator();
+                const gain1 = audioCtx.createGain();
+                osc1.type = 'triangle';
+                osc1.frequency.setValueAtTime(587.33, now);
+                gain1.gain.setValueAtTime(0.25, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                osc1.connect(gain1);
+                gain1.connect(audioCtx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.4);
+
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.type = 'triangle';
+                osc2.frequency.setValueAtTime(880, now + 0.15);
+                gain2.gain.setValueAtTime(0.3, now + 0.15);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                osc2.start(now + 0.15);
+                osc2.stop(now + 0.7);
+            } catch (e) { console.log("Audio waiting user interaction:", e); }
+        }
+
+        document.body.addEventListener('click', () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }, { once: true });
+
+        let pedidosActivos = [
+            { id: 101, numero_orden: "101", cliente_nombre: "Facundo R.", estado: "preparacion", tipo_entrega: "Salón" },
+            { id: 104, numero_orden: "104", cliente_nombre: "Mariana G.", estado: "preparacion", tipo_entrega: "Para Llevar" },
+            { id: 105, numero_orden: "105", cliente_nombre: "Lucas V.", estado: "preparacion", tipo_entrega: "Salón" },
+            { id: 108, numero_orden: "108", cliente_nombre: "Gonzalo B.", estado: "preparacion", tipo_entrega: "Delivery" },
+            { id: 98, numero_orden: "098", cliente_nombre: "Alejandro M.", estado: "listo", tipo_entrega: "Salón" },
+            { id: 99, numero_orden: "099", cliente_nombre: "Camila S.", estado: "listo", tipo_entrega: "Para Llevar" },
+            { id: 100, numero_orden: "100", cliente_nombre: "Santiago K.", estado: "listo", tipo_entrega: "Salón" },
+            { id: 102, numero_orden: "102", cliente_nombre: "Valentina P.", estado: "listo", tipo_entrega: "Salón" }
+        ];
+
+        let idsListosAnteriores = new Set([98, 99, 100, 102]);
+
+        function renderizarTablero(pedidos) {
+            const contPrep = document.getElementById('container-prep');
+            const contReady = document.getElementById('container-ready');
+            const pillPrep = document.getElementById('count-prep');
+            const pillReady = document.getElementById('count-ready');
+
+            if (!contPrep || !contReady) return;
+
+            contPrep.innerHTML = '';
+            contReady.innerHTML = '';
+
+            let prepCount = 0;
+            let readyCount = 0;
+            let nuevoListo = false;
+            let idsListosActuales = new Set();
+
+            pedidos.forEach(p => {
+                const num = p.numero_orden || p.id || '---';
+                const cliente = p.cliente_nombre || 'Cliente';
+                const entrega = p.tipo_entrega || 'Mostrador';
+                const estado = (p.estado || '').toLowerCase().trim();
+
+                if (estado === 'listo' || estado.includes('listo')) {
+                    readyCount++;
+                    const idUnico = p.id || num;
+                    idsListosActuales.add(idUnico);
+
+                    if (!idsListosAnteriores.has(idUnico)) nuevoListo = true;
+
+                    const card = document.createElement('div');
+                    card.className = 'card-ready';
+                    card.innerHTML = `
+                        <div class="ready-info-left">
+                            <div class="order-num-ready">#${num}</div>
+                            <div class="client-info-ready" title="${cliente}">👤 ${cliente}</div>
+                            <div class="ready-tag-pill">
+                                <span>🔔 RETIRAR (${entrega})</span>
+                            </div>
+                        </div>
+                        ${getAnimatedHotDogSVG()}
+                    `;
+                    contReady.appendChild(card);
+                } else if (estado !== 'entregado' && estado !== 'cancelado') {
+                    prepCount++;
+                    const card = document.createElement('div');
+                    card.className = 'card-prep';
+                    card.innerHTML = `
+                        <div>
+                            <div class="order-num-prep">#${num}</div>
+                            <div class="client-info-prep" title="${cliente}">👤 ${cliente}</div>
+                        </div>
+                        <div class="text-end">
+                            <span class="status-badge-prep">
+                                <span class="spin-cooking">⏳</span> Cocinando
+                            </span>
+                            <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 4px; font-weight: 700;">
+                                ${entrega}
+                            </div>
+                        </div>
+                    `;
+                    contPrep.appendChild(card);
+                }
+            });
+
+            if (pillPrep) pillPrep.textContent = `${prepCount} ${prepCount === 1 ? 'PEDIDO' : 'PEDIDOS'}`;
+            if (pillReady) pillReady.textContent = `${readyCount} ${readyCount === 1 ? 'LISTO' : 'LISTOS'}`;
+
+            if (prepCount === 0) {
+                contPrep.innerHTML = `
+                    <div class="empty-state">
+                        <span class="empty-icon">🍳</span>
+                        <div>No hay pedidos en preparación en este momento</div>
+                    </div>`;
+            }
+
+            if (readyCount === 0) {
+                contReady.innerHTML = `
+                    <div class="empty-state">
+                        <span class="empty-icon">🌭</span>
+                        <div>Todos los pedidos listos fueron entregados</div>
+                    </div>`;
+            }
+
+            if (nuevoListo) playChime();
+            idsListosAnteriores = idsListosActuales;
+        }
+
+        renderizarTablero(pedidosActivos);
+
+        async function fetchPedidos() {
+            try {
+                const res = await fetch('/api/pedidos');
+                if (res.ok) {
+                    const data = await res.json();
+                    const lista = Array.isArray(data) ? data : (data.pedidos || data.data || []);
+                    if (lista.length > 0) {
+                        pedidosActivos = lista;
+                        renderizarTablero(pedidosActivos);
+                    }
+                }
+            } catch (err) {}
+        }
+
+        let demoCounter = 110;
+        setInterval(() => {
+            const prepOrders = pedidosActivos.filter(p => p.estado === 'preparacion');
+            if (prepOrders.length > 0) {
+                const orderToReady = prepOrders[0];
+                orderToReady.estado = 'listo';
+                
+                demoCounter++;
+                const nombres = ['Martín T.', 'Sofía L.', 'Joaquín D.', 'Florencia B.', 'Ramiro C.'];
+                const nomRandom = nombres[Math.floor(Math.random() * nombres.length)];
+                pedidosActivos.push({
+                    id: demoCounter,
+                    numero_orden: String(demoCounter),
+                    cliente_nombre: nomRandom,
+                    estado: 'preparacion',
+                    tipo_entrega: Math.random() > 0.4 ? 'Salón' : 'Para Llevar'
+                });
+
+                const listos = pedidosActivos.filter(p => p.estado === 'listo');
+                if (listos.length > 6) listos[0].estado = 'entregado';
+
+                renderizarTablero(pedidosActivos);
+            }
+        }, 8000);
+
+        setInterval(fetchPedidos, 3500);
+
+        if (typeof io !== 'undefined') {
+            try {
+                const socket = io();
+                socket.on('actualizar_pedidos', data => {
+                    const pedidos = Array.isArray(data) ? data : (data.pedidos || data.data || []);
+                    renderizarTablero(pedidos);
+                });
+                socket.on('pedido_actualizado', () => { fetchPedidos(); });
+            } catch(e) {}
+        }
+    </script>
+</body>
+</html>

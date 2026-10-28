@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Pancho Escobar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        surface: "#10131d",
+                        "surface-container-low": "#181b25",
+                        "surface-container": "#1c1f2a",
+                        "surface-container-high": "#272a34",
+                        "surface-container-highest": "#32343f",
+                        "surface-container-lowest": "#0b0e18",
+                        primary: "#ffc174",
+                        "primary-container": "#f59e0b",
+                        "on-primary-container": "#613b00",
+                        tertiary: "#56e5a9",
+                        "tertiary-container": "#30c88f",
+                        error: "#ffb4ab",
+                        "error-container": "#93000a",
+                        outline: "#a08e7a"
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-[#e0e2f0] font-sans antialiased min-h-screen">
+
+    <!-- SIDEBAR DE NAVEGACIÓN -->
+    <aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-low/95 backdrop-blur-xl z-50 flex flex-col justify-between border-r border-outline/20 shadow-2xl">
+        <div class="flex flex-col">
+            <div class="h-20 px-5 flex items-center gap-3 border-b border-outline/20 bg-surface-container-lowest/50">
+                <img src="{{ url_for('static', filename='uploads/logo.png') }}" alt="Pancho Escobar" class="w-10 h-10 object-contain drop-shadow-[0_0_12px_rgba(255,193,116,0.6)]" onerror="this.src='/static/uploads/logo_pancho.png'">
+                <div class="flex flex-col">
+                    <span class="font-bold text-base text-white tracking-tight font-['Space_Grotesk']">Pancho Escobar</span>
+                    <span class="text-[10px] text-primary uppercase tracking-widest font-mono font-semibold">Admin Cockpit 24h</span>
+                </div>
+            </div>
+            <div class="px-4 py-5">
+                <div class="text-[10px] font-mono uppercase tracking-wider text-outline px-2 mb-2">Navegación Operativa</div>
+               <nav class="flex flex-col gap-1.5" id="sidebar-nav">
+    <a href="#panel-general" onclick="activarLinkMenu(this)" class="nav-link flex items-center gap-3 px-3.5 py-2.5 bg-primary-container text-on-primary-container font-bold rounded-xl shadow-md transition-all">
+        <span class="material-symbols-outlined text-[20px]">grid_view</span><span>Panel General</span>
+    </a>
+    <a href="#productos-stock" onclick="activarLinkMenu(this)" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-surface-container-high hover:text-white transition-all text-sm font-medium">
+        <span class="material-symbols-outlined text-[20px] text-primary">inventory_2</span><span>Productos & Stock</span>
+    </a>
+    <a href="#historial-ventas" onclick="activarLinkMenu(this)" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-surface-container-high hover:text-white transition-all text-sm font-medium">
+        <span class="material-symbols-outlined text-[20px] text-tertiary">query_stats</span><span>Historial de Ventas</span>
+    </a>
+    <a href="#turnos-arqueos" onclick="activarLinkMenu(this)" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-surface-container-high hover:text-white transition-all text-sm font-medium">
+        <span class="material-symbols-outlined text-[20px] text-amber-400">receipt_long</span><span>Turnos & Arqueos</span>
+    </a>
+    <a href="#toppings-adicionales" onclick="activarLinkMenu(this)" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-surface-container-high hover:text-white transition-all text-sm font-medium">
+        <span class="material-symbols-outlined text-[20px] text-orange-400">lunch_dining</span><span>Toppings & Extras</span>
+    </a>
+    <a href="#zonas-envio" onclick="activarLinkMenu(this)" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-surface-container-high hover:text-white transition-all text-sm font-medium">
+        <span class="material-symbols-outlined text-[20px] text-cyan-400">two_wheeler</span><span>Zonas de Envío</span>
+    </a>
+</nav>
+            </div>
+        </div>
+        <div class="p-4 border-t border-outline/20 bg-surface-container-lowest/80 flex flex-col gap-2.5">
+            <div class="flex items-center justify-between text-xs text-slate-400 px-1"><span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-tertiary animate-ping"></span> Terminal POS</span><span class="text-tertiary font-mono font-bold">#02 ONLINE</span></div>
+            <a href="/app" class="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-primary font-mono text-xs uppercase tracking-wider transition-all border border-outline/30 shadow-inner">
+                <span class="material-symbols-outlined text-[16px]">point_of_sale</span><span>← Ir a Tótem Cliente</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="pl-64 flex flex-col min-h-screen">
+        <!-- HEADER SUPERIOR -->
+        <header class="fixed top-0 left-64 right-0 h-16 bg-surface/90 backdrop-blur-xl border-b border-outline/20 z-40 flex items-center justify-between px-6 shadow-sm">
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3 bg-surface-container-low px-4 py-2 rounded-xl border border-outline/20 shadow-sm" id="estado-caja-header-banner">
+                    <div class="w-2.5 h-2.5 rounded-full bg-tertiary animate-pulse"></div>
+                    <div class="flex flex-col text-xs">
+                        <span id="header-turno-txt" class="text-tertiary font-bold uppercase font-mono tracking-wide">Verificando turno...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="abrirModalCaja('abrir')" id="btn-quick-caja" class="hidden px-3.5 py-1.5 rounded-lg bg-tertiary-container text-slate-950 font-mono text-xs font-bold uppercase tracking-wider shadow hover:bg-tertiary transition-all items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[16px]">lock_open</span> Abrir Caja
+                </button>
+                <div class="flex items-center gap-3 pl-3 border-l border-outline/20">
+                    <div class="flex flex-col text-right"><span class="font-bold text-sm text-white leading-tight">Admin Local</span><span class="text-[10px] text-outline font-mono uppercase">Casa Matriz 24h</span></div>
+                    <div class="w-9 h-9 rounded-xl bg-primary-container text-on-primary-container flex items-center justify-center font-bold shadow"><span class="material-symbols-outlined text-[20px]">admin_panel_settings</span></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- SECCIÓN DE TRABAJO -->
+        <main class="relative pt-20 px-6 pb-12 flex-1 flex flex-col gap-6">
+            
+            <!-- PANEL DE CONTROL DE CAJA Y TURNOS -->
+            <section class="grid grid-cols-1 xl:grid-cols-12 gap-5" id="panel-general">
+                <div class="xl:col-span-5 bg-gradient-to-br from-surface-container-high to-surface-container-low rounded-2xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between border border-outline/20">
+                    <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none"></div>
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-3 py-1 rounded-full bg-tertiary/10 text-tertiary text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 font-bold border border-tertiary/20">
+                                <span class="w-2 h-2 rounded-full bg-tertiary animate-ping"></span> Operación de Caja
+                            </span>
+                            <span class="text-[11px] font-mono text-outline">Jornada 24h Activa</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-white tracking-tight mb-1" id="cajero-nombre-txt">Caja Pancho Escobar</h2>
+                        <p class="text-xs text-outline mb-4 leading-relaxed" id="estado-caja-txt">Verificando estado del servidor...</p>
+                    </div>
+                    <div class="flex gap-2 pt-2" id="botones-caja-container"></div>
+                </div>
+
+                <!-- KPI CARDS DE VISTAS RAPIDAS -->
+                <div class="xl:col-span-7 grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div class="bg-surface-container-high rounded-2xl p-5 flex flex-col justify-between border border-outline/10 shadow-lg relative overflow-hidden group hover:border-primary/40 transition-all">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] uppercase tracking-wider text-outline font-mono">Ventas del Turno</span>
+                            <span class="material-symbols-outlined text-primary text-[20px]">payments</span>
+                        </div>
+                        <div class="text-3xl font-extrabold font-mono text-primary mt-3 tracking-tight" id="kpi-ventas-turno">$0.00</div>
+                        <span class="text-[10px] text-tertiary font-mono mt-1 flex items-center gap-1">🟢 En tiempo real</span>
+                    </div>
+                    <div class="bg-surface-container-high rounded-2xl p-5 flex flex-col justify-between border border-outline/10 shadow-lg relative overflow-hidden group hover:border-white/40 transition-all">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] uppercase tracking-wider text-outline font-mono">Productos Activos</span>
+                            <span class="material-symbols-outlined text-white text-[20px]">inventory_2</span>
+                        </div>
+                        <div class="text-3xl font-extrabold font-mono text-white mt-3 tracking-tight" id="kpi-total-productos">0</div>
+                        <span class="text-[10px] text-outline font-mono mt-1">Disponibles en tótems</span>
+                    </div>
+                    <div class="bg-surface-container-high rounded-2xl p-5 flex flex-col justify-between border border-outline/10 shadow-lg col-span-2 md:col-span-1 relative overflow-hidden group hover:border-tertiary/40 transition-all">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] uppercase tracking-wider text-outline font-mono">Zonas Delivery</span>
+                            <span class="material-symbols-outlined text-tertiary text-[20px]">two_wheeler</span>
+                        </div>
+                        <div class="text-3xl font-extrabold font-mono text-tertiary mt-3 tracking-tight" id="kpi-total-zonas">0</div>
+                        <span class="text-[10px] text-outline font-mono mt-1">Radios configurados</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GESTIÓN DE PRODUCTOS & STOCK -->
+            <section id="productos-stock" class="bg-surface-container rounded-2xl shadow-xl overflow-hidden border border-outline/20">
+                <div class="p-5 bg-surface-container-high flex flex-wrap items-center justify-between gap-4 border-b border-outline/20">
+                    <div>
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">inventory_2</span> Productos en Sistema & Stock
+                        </h3>
+                        <p class="text-xs text-outline">Control instantáneo de disponibilidad en Tótems y Mostrador</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Filtro rápido por categoría -->
+                        <select id="filtro-categoria-admin" onchange="filtrarProductosPorCategoria()" class="bg-surface-container-lowest text-xs text-white px-3 py-2 rounded-xl border border-outline/30 focus:outline-none focus:border-primary font-mono">
+                            <option value="todos">📁 Todas las Categorías</option>
+                        </select>
+                        <a href="/productos/nuevo" class="px-4 py-2 rounded-xl bg-primary-container text-on-primary-container font-bold text-xs uppercase tracking-wider hover:bg-primary transition-all flex items-center gap-1.5 shadow">
+                            <span class="material-symbols-outlined text-[18px]">add_circle</span> Cargar Producto
+                        </a>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-surface-container-lowest text-outline text-[11px] uppercase tracking-wider font-mono">
+                                <th class="py-3 px-5">Imagen</th>
+                                <th class="py-3 px-4">ID</th>
+                                <th class="py-3 px-4">Nombre & Receta</th>
+                                <th class="py-3 px-4">Categoría</th>
+                                <th class="py-3 px-4 text-right">Precio</th>
+                                <th class="py-3 px-4 text-center">Estado En Línea (Switch)</th>
+                                <th class="py-3 px-4 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-surface-container-high/40 text-sm" id="tabla-productos"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- HISTORIAL DE VENTAS & MÉTRICAS ANALÍTICAS AVANZADAS -->
+            <section id="historial-ventas" class="bg-surface-container rounded-2xl shadow-xl overflow-hidden border border-outline/20 flex flex-col gap-6 p-6">
+                
+                <!-- Cabecera y Filtros Temporales -->
+                <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-outline/20">
+                    <div>
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-[24px]">query_stats</span> Historial de Ventas & Métricas Analíticas
+                        </h3>
+                        <p class="text-xs text-outline mt-0.5">Análisis de rendimiento comercial bajo jornada 24h continua (corte operativo a las 06:00 AM)</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 bg-surface-container-lowest p-1.5 rounded-xl border border-outline/20">
+                        <button onclick="filtrarPorPeriodo('hoy')" class="px-3 py-1.5 rounded-lg bg-primary-container text-on-primary-container font-mono text-xs uppercase font-bold transition-all btn-periodo shadow-sm" data-periodo="hoy">Hoy Operativo</button>
+                        <button onclick="filtrarPorPeriodo('semana')" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white font-mono text-xs uppercase transition-all btn-periodo" data-periodo="semana">Últimos 7 Días</button>
+                        <button onclick="filtrarPorPeriodo('mes')" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white font-mono text-xs uppercase transition-all btn-periodo" data-periodo="mes">Este Mes</button>
+                        <button onclick="filtrarPorPeriodo('todos')" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white font-mono text-xs uppercase transition-all btn-periodo" data-periodo="todos">Historial Completo</button>
+                    </div>
+                </div>
+
+                <!-- Dashboard de Métricas Analíticas (KPIs de Ventas) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-surface-container-high p-5 rounded-2xl border border-outline/10 flex flex-col justify-between shadow-md">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-mono text-outline uppercase tracking-wider">Recaudación (Turno / Filtro)</span>
+                            <span class="material-symbols-outlined text-primary text-[18px]">account_balance_wallet</span>
+                        </div>
+                        <div class="text-2xl font-extrabold font-mono text-primary mt-3" id="metric-recaudacion-total">$0.00</div>
+                        <span class="text-[10px] text-tertiary font-mono mt-1" id="metric-ordenes-count">0 órdenes procesadas</span>
+                    </div>
+                    <div class="bg-surface-container-high p-5 rounded-2xl border border-outline/10 flex flex-col justify-between shadow-md">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-mono text-outline uppercase tracking-wider">Ticket Promedio por Orden</span>
+                            <span class="material-symbols-outlined text-white text-[18px]">receipt</span>
+                        </div>
+                        <div class="text-2xl font-extrabold font-mono text-white mt-3" id="metric-ticket-promedio">$0.00</div>
+                        <span class="text-[10px] text-outline font-mono mt-1">Valor medio por ticket</span>
+                    </div>
+                    <div class="bg-surface-container-high p-5 rounded-2xl border border-outline/10 flex flex-col justify-between shadow-md">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-mono text-outline uppercase tracking-wider">Método de Pago Líder</span>
+                            <span class="material-symbols-outlined text-tertiary text-[18px]">credit_card</span>
+                        </div>
+                        <div class="text-lg font-bold font-mono text-tertiary mt-3 truncate" id="metric-metodo-lider">-</div>
+                        <span class="text-[10px] text-outline font-mono mt-1" id="metric-metodo-sub">Basado en cobros</span>
+                    </div>
+                    <div class="bg-surface-container-high p-5 rounded-2xl border border-outline/10 flex flex-col justify-between shadow-md">
+                        <span class="text-[11px] font-mono text-outline uppercase tracking-wider">Acciones de Reporte</span>
+                        <div class="flex gap-2 mt-3">
+                            <button onclick="exportarReporteExcel()" class="flex-1 py-2 bg-surface-container-lowest hover:bg-surface-container text-primary font-mono text-[11px] uppercase font-bold rounded-xl border border-outline/30 transition-colors flex items-center justify-center gap-1 shadow-sm">
+                                <span class="material-symbols-outlined text-[14px]">download</span> Excel
+                            </button>
+                            <button onclick="window.print()" class="flex-1 py-2 bg-surface-container-lowest hover:bg-surface-container text-white font-mono text-[11px] uppercase font-bold rounded-xl border border-outline/30 transition-colors flex items-center justify-center gap-1 shadow-sm">
+                                <span class="material-symbols-outlined text-[14px]">print</span> Imprimir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desglose de Pagos & Top Productos Más Vendidos -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <!-- Desglose de Formas de Pago -->
+                    <div class="bg-surface-container-low p-5 rounded-2xl border border-outline/10 flex flex-col gap-3 shadow-inner">
+                        <h4 class="text-xs font-mono text-outline uppercase tracking-wider font-bold flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-[16px]">payments</span> Desglose por Método de Pago
+                        </h4>
+                        <div class="grid grid-cols-3 gap-3 font-mono text-xs">
+                            <div class="bg-surface-container-high p-3.5 rounded-xl border border-outline/10 flex flex-col justify-between">
+                                <span class="text-[10px] text-outline uppercase font-bold">Efectivo</span>
+                                <span class="text-tertiary font-bold text-sm mt-2" id="pago-efectivo-monto">$0.00</span>
+                                <span class="text-[9px] text-outline mt-0.5" id="pago-efectivo-cant">0 cobros</span>
+                            </div>
+                            <div class="bg-surface-container-high p-3.5 rounded-xl border border-outline/10 flex flex-col justify-between">
+                                <span class="text-[10px] text-outline uppercase font-bold">Mercado Pago</span>
+                                <span class="text-primary font-bold text-sm mt-2" id="pago-mp-monto">$0.00</span>
+                                <span class="text-[9px] text-outline mt-0.5" id="pago-mp-cant">0 cobros</span>
+                            </div>
+                            <div class="bg-surface-container-high p-3.5 rounded-xl border border-outline/10 flex flex-col justify-between">
+                                <span class="text-[10px] text-outline uppercase font-bold">Transferencia</span>
+                                <span class="text-white font-bold text-sm mt-2" id="pago-transf-monto">$0.00</span>
+                                <span class="text-[9px] text-outline mt-0.5" id="pago-transf-cant">0 cobros</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top 3 Platos Más Vendidos -->
+                    <div class="bg-surface-container-low p-5 rounded-2xl border border-outline/10 flex flex-col gap-3 shadow-inner">
+                        <h4 class="text-xs font-mono text-outline uppercase tracking-wider font-bold flex items-center gap-2">
+                            <span class="material-symbols-outlined text-amber-400 text-[16px]">military_tech</span> Top Platos Más Vendidos
+                        </h4>
+                        <div class="flex flex-col gap-2.5" id="top-productos-lista">
+                            <div class="text-xs text-outline font-mono italic">Calculando ranking...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buscador y Tabla de Órdenes Agrupadas por Jornada Comercial -->
+                <div class="flex flex-col gap-4 pt-2">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <h4 class="text-xs font-mono text-outline uppercase tracking-wider font-bold flex items-center gap-2">
+                            <span class="material-symbols-outlined text-tertiary text-[16px]">calendar_clock</span> Detalle de Órdenes por Jornada Comercial (Corte 06:00 AM)
+                        </h4>
+                        <div class="relative w-80">
+                            <span class="material-symbols-outlined absolute left-3.5 top-2.5 text-outline text-[18px]">search</span>
+                            <input type="text" id="buscador-ventas" placeholder="Buscar por cliente u orden..." class="w-full bg-surface-container-lowest text-xs pl-10 pr-3 py-2.5 rounded-xl border border-outline/30 text-white focus:outline-none focus:border-primary font-sans shadow-inner" oninput="filtrarHistorialVentas()">
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-3" id="acordeon-ventas-por-fecha">
+                        <div class="text-center text-outline py-8 text-xs font-mono">Cargando historial de ventas...</div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- HISTORIAL DE TURNOS Y ARQUEOS -->
+            <section id="turnos-arqueos" class="bg-surface-container rounded-2xl shadow-xl overflow-hidden border border-outline/20">
+                <div class="p-5 bg-surface-container-high flex items-center justify-between border-b border-outline/20">
+                    <div>
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <span class="material-symbols-outlined text-amber-400">receipt_long</span> Historial de Turnos y Arqueos de Caja
+                        </h3>
+                        <p class="text-xs text-outline">Auditoría de aperturas, cierres y diferencias de efectivo por turno</p>
+                    </div>
+                    <button onclick="cargarHistorialTurnos()" class="px-3.5 py-2 bg-surface-container-highest hover:bg-surface-container-high text-primary rounded-xl text-xs font-mono uppercase font-bold transition-all shadow-sm flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">refresh</span> Actualizar Turnos
+                    </button>
+                </div>
+                <div class="p-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="grilla-turnos-caja">
+                        <div class="col-span-full text-center text-outline py-6 text-xs font-mono">Cargando turnos...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TOPPINGS Y ADICIONALES -->
+            <section id="toppings-adicionales" class="bg-surface-container rounded-2xl shadow-xl overflow-hidden border border-outline/20">
+                <div class="p-5 bg-surface-container-high flex items-center justify-between border-b border-outline/20">
+                    <div>
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <span class="material-symbols-outlined text-orange-400">lunch_dining</span> Gestión de Adicionales / Toppings
+                        </h3>
+                        <p class="text-xs text-outline">Extras seleccionables en tótems y caja</p>
+                    </div>
+                    <button onclick="abrirModalAdicional()" class="px-4 py-2 rounded-xl bg-primary-container text-on-primary-container font-bold text-xs uppercase tracking-wider hover:bg-primary transition-all flex items-center gap-1.5 shadow">
+                        <span class="material-symbols-outlined text-[18px]">add</span> Nuevo Adicional
+                    </button>
+                </div>
+                <div class="p-5 overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-surface-container-lowest text-outline text-[11px] uppercase tracking-wider font-mono">
+                                <th class="py-3 px-4">ID</th>
+                                <th class="py-3 px-4">Nombre del Topping</th>
+                                <th class="py-3 px-4">Precio Adicional</th>
+                                <th class="py-3 px-4 text-center">Estado (Switch)</th>
+                                <th class="py-3 px-4 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-surface-container-high/40 text-sm" id="tabla-adicionales"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ZONAS DE ENVÍO -->
+            <section id="zonas-envio" class="bg-surface-container rounded-2xl shadow-xl overflow-hidden border border-outline/20">
+                <div class="p-5 bg-surface-container-high border-b border-outline/20">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <span class="material-symbols-outlined text-cyan-400">two_wheeler</span> Zonas y Costos de Envío
+                    </h3>
+                    <p class="text-xs text-outline">Radios de entrega para pedidos de delivery</p>
+                </div>
+                <div class="p-5 flex flex-col gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end bg-surface-container-low p-5 rounded-2xl border border-outline/10 shadow-inner">
+                        <div class="md:col-span-5 flex flex-col gap-1.5">
+                            <label class="text-[11px] font-mono text-outline uppercase font-bold">Nombre de la Zona / Barrio:</label>
+                            <input type="text" id="admin-zona-nombre" class="bg-surface-container-lowest rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary border border-outline/30 shadow-inner" placeholder="Ej: Rafael Castillo">
+                        </div>
+                        <div class="md:col-span-4 flex flex-col gap-1.5">
+                            <label class="text-[11px] font-mono text-outline uppercase font-bold">Costo de Envío ($):</label>
+                            <input type="number" step="0.01" id="admin-zona-costo" class="bg-surface-container-lowest rounded-xl px-4 py-2.5 text-primary font-mono font-bold text-sm focus:outline-none focus:ring-1 focus:ring-primary border border-outline/30 shadow-inner" placeholder="1500">
+                        </div>
+                        <div class="md:col-span-3">
+                            <button onclick="crearZonaAdmin()" class="w-full py-2.5 bg-primary-container text-on-primary-container font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-primary transition-all shadow flex items-center justify-center gap-1.5">
+                                <span class="material-symbols-outlined text-[16px]">add_circle</span> Agregar Zona
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-surface-container-lowest text-outline text-[11px] uppercase tracking-wider font-mono">
+                                    <th class="py-3 px-4">Zona / Barrio</th>
+                                    <th class="py-3 px-4">Costo</th>
+                                    <th class="py-3 px-4 text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-surface-container-high/40 text-sm" id="tabla-zonas-admin"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL APERTURA / CIERRE DE CAJA -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden" id="modalCaja">
+        <div class="bg-surface-container rounded-2xl w-full max-w-md shadow-2xl border border-outline/30 overflow-hidden">
+            <div class="p-5 bg-surface-container-high flex items-center justify-between border-b border-outline/20">
+                <h5 class="font-bold text-white flex items-center gap-2" id="modal-caja-titulo">
+                    <span class="material-symbols-outlined text-primary">point_of_sale</span> Gestión de Turno
+                </h5>
+                <button type="button" class="text-outline hover:text-white" onclick="modalCajaInstance.hide()"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="p-6 flex flex-col gap-4">
+                <div class="flex flex-col gap-1.5" id="campo-empleado-container">
+                    <label class="text-xs font-mono text-outline uppercase font-bold">Nombre del Cajero / Empleado:</label>
+                    <input type="text" id="input-empleado-caja" class="bg-surface-container-lowest rounded-xl px-4 py-3 text-white font-medium focus:outline-none focus:ring-1 focus:ring-primary border border-outline/30 shadow-inner" placeholder="Ej: Federico M.">
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-mono text-outline uppercase font-bold" id="label-monto-caja">Monto:</label>
+                    <input type="number" step="0.01" id="input-monto-caja" class="bg-surface-container-lowest rounded-xl px-4 py-3 text-primary font-mono font-bold text-lg focus:outline-none focus:ring-1 focus:ring-primary border border-outline/30 shadow-inner" placeholder="0.00">
+                </div>
+                <button onclick="ejecutarAccionCaja()" class="w-full py-3.5 bg-primary-container text-on-primary-container font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-primary transition-all shadow-lg mt-2">Confirmar Transacción</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL RESUMEN DE CIERRE DE TURNO -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden" id="modalResumenCaja">
+        <div class="bg-surface-container rounded-2xl w-full max-w-md shadow-2xl border border-outline/30 overflow-hidden">
+            <div class="p-5 bg-surface-container-high flex items-center justify-between border-b border-outline/20">
+                <h5 class="font-bold text-white uppercase tracking-wider text-sm flex items-center gap-2">
+                    <span class="material-symbols-outlined text-tertiary">analytics</span> Resumen de Cierre de Turno
+                </h5>
+                <button type="button" class="text-outline hover:text-white" onclick="modalResumenInstance.hide()"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="p-6 flex flex-col gap-3 font-mono text-xs">
+                <div class="flex justify-between p-3.5 bg-surface-container-low rounded-xl border border-outline/10"><span class="text-outline font-bold">Fondo Inicial:</span><span id="resumen-inicial" class="text-white font-bold">$0.00</span></div>
+                <div class="flex justify-between p-3.5 bg-surface-container-low rounded-xl border border-outline/10"><span class="text-outline font-bold">Ventas Totales:</span><span id="resumen-ventas" class="text-tertiary font-bold">$0.00</span></div>
+                <div class="flex justify-between p-3.5 bg-surface-container-low rounded-xl border border-outline/10"><span class="text-outline font-bold">Efectivo Esperado:</span><span id="resumen-esperado" class="text-primary font-bold">$0.00</span></div>
+                <div class="flex justify-between p-3.5 bg-surface-container-low rounded-xl border border-outline/10"><span class="text-outline font-bold">Efectivo Declarado:</span><span id="resumen-declarado" class="text-white font-bold">$0.00</span></div>
+                <div class="flex justify-between p-3.5 bg-error/10 rounded-xl border border-error/30"><span class="text-outline font-bold">Diferencia:</span><span id="resumen-diferencia" class="font-bold text-sm">$0.00</span></div>
+            </div>
+            <div class="p-6 bg-surface-container-high border-t border-outline/20">
+                <button type="button" class="w-full py-3.5 bg-primary-container text-on-primary-container font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-primary transition-all shadow" onclick="modalResumenInstance.hide(); cargarHistorialTurnos();">Aceptar y Finalizar Turno</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR PRODUCTO -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden" id="modalEditarProducto">
+        <div class="bg-surface-container rounded-2xl w-full max-w-lg shadow-2xl border border-outline/30 overflow-hidden">
+            <div class="p-5 bg-surface-container-high flex items-center justify-between border-b border-outline/20">
+                <h5 class="font-bold text-white uppercase text-sm flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">edit</span> Editar Producto
+                </h5>
+                <button type="button" class="text-outline hover:text-white" onclick="modalEditarInstance.hide()"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="p-6">
+                <form id="form-editar-producto" onsubmit="actualizarProducto(event)" class="flex flex-col gap-4">
+                    <input type="hidden" id="edit-id">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[11px] font-mono text-outline uppercase font-bold">Nombre del Producto:</label>
+                        <input type="text" id="edit-nombre" class="bg-surface-container-lowest rounded-xl px-4 py-2.5 text-white font-medium focus:outline-none focus:ring-1 focus:ring-primary border border-outline/30 shadow-inner" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[11px] font-mono text-outline uppercase font-bold">Precio ($):</label>
+                            <input type="number" step="0.01" id="edit-precio" class="bg-surface-container-lowest rounded-xl px-4 py-2.5 text-primary font-mono font-bold focus:outline-none focus:ring-1 focus:ring-primary border border-outline/30 shadow-inner" required>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[11px] font-mono text-outline uppercase font-bold">Categoría / Estilo:</label>
+                            <input type="text" id="edit-categoria" class="bg-surface-container-lowest rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-1 focus:ring-primary border border-outline/30 shadow-inner" required>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[11px] font-mono text-outline uppercase font-bold">Cambiar Imagen (Opcional):</label>
+                        <input type="file" id="edit-imagen" class="bg-surface-container-lowest rounded-xl px-4 py-2 text-xs text-outline focus:outline-none border border-outline/30 shadow-inner" accept="image/*">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[11px] font-mono text-outline uppercase font-bold">Ingredientes / Toppings:</label>
+                        <div class="p-2.5 rounded-xl bg-surface-container-lowest border border-outline/30 flex flex-wrap gap-2 items-center min-h-[48px] shadow-inner" id="edit-tags-container" onclick="document.getElementById('edit-tag-input').focus()">
+                            <input type="text" id="edit-tag-input" class="bg-transparent border-0 text-white text-xs outline-none flex-grow" placeholder="Agregar ingrediente...">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full py-3.5 bg-primary-container text-on-primary-container font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-primary transition-all shadow-lg mt-2">💾 Guardar Cambios</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ADICIONAL -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden" id="modalAdicional">
+        <div class="bg-surface-container rounded-2xl w-full max-w-md shadow-2xl border border-outline/30 overflow-hidden">
+            <div class="p-5 bg-surface-container-high flex items-center justify-between border-b border-outline/20">
+                <h5 class="font-bold text-white uppercase text-sm flex items-center gap-2" id="modal-adicional-titulo">
+                    <span class="material-symbols-outlined text-orange-400">add_box</span> Nuevo Adicional
+                </h5>
+                <button type="button" class="text-outline hover:text-white" onclick="modalAdicionalInstance.hide()"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="p-6">
+                <form id="form-adicional" onsubmit="guardarAdicional(event)" class="flex flex-col gap-4">
+                    <input type="hidden" id="adicional-id">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[11px] font-mono text-outline uppercase font-bold">Nombre del Topping:</label>
+                        <input type="text" id="adicional-nombre" class="bg-surface-container-lowest rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-primary border border-outline/30 shadow-inner" required>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[11px] font-mono text-outline uppercase font-bold">Precio Adicional ($):</label>
+                        <input type="number" step="0.01" id="adicional-precio" class="bg-surface-container-lowest rounded-xl px-4 py-3 text-primary font-mono font-bold focus:outline-none focus:ring-1 focus:ring-primary border border-outline/30 shadow-inner" required>
+                    </div>
+                    <button type="submit" class="w-full py-3.5 bg-primary-container text-on-primary-container font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-primary transition-all shadow-lg mt-2">Guardar Adicional</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
+
+    <!-- SCRIPTS DE LOGICA Y CONEXION CON BACKEND FLASK -->
+    <script>
+        let modalEditarInstance = { show: () => document.getElementById('modalEditarProducto').classList.remove('hidden'), hide: () => document.getElementById('modalEditarProducto').classList.add('hidden') };
+        let modalAdicionalInstance = { show: () => document.getElementById('modalAdicional').classList.remove('hidden'), hide: () => document.getElementById('modalAdicional').classList.add('hidden') };
+        let modalCajaInstance = { show: () => document.getElementById('modalCaja').classList.remove('hidden'), hide: () => document.getElementById('modalCaja').classList.add('hidden') };
+        let modalResumenInstance = { show: () => document.getElementById('modalResumenCaja').classList.remove('hidden'), hide: () => document.getElementById('modalResumenCaja').classList.add('hidden') };
+        
+        let editIngredientesList = [];
+        let accionCajaActual = '';
+        let todasLasVentasGlobal = [];
+        let todosLosProductosGlobal = [];
+        let periodoActual = 'hoy'; // Por defecto iniciamos en el turno/hoy operativo
+        let categoriaFiltroActual = 'todos';
+        let turnoActualGlobal = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarProductosAdmin();
+            cargarHistorialVentas();
+            cargarHistorialTurnos();
+            cargarAdicionales();
+            cargarZonasAdmin();
+            verificarEstadoCaja();
+            setupTagInput();
+        });
+
+        function mostrarAlerta(mensaje, tipo = 'error') {
+            const container = document.getElementById('toast-container');
+            const alertId = 'toast-' + Date.now();
+            const bgClass = tipo === 'success' ? 'bg-tertiary/20 text-tertiary border-tertiary/50' : 'bg-error/20 text-error border-error/50';
+            container.innerHTML += `
+                <div id="${alertId}" class="p-3.5 rounded-2xl border ${bgClass} shadow-2xl backdrop-blur-md flex items-center justify-between gap-4 text-xs font-mono font-bold animate-fade-in">
+                    <span class="flex items-center gap-2">${tipo === 'success' ? '✅' : '⚠️'} ${mensaje}</span>
+                    <button onclick="document.getElementById('${alertId}').remove()" class="text-sm px-1">&times;</button>
+                </div>`;
+            setTimeout(() => { const el = document.getElementById(alertId); if (el) el.remove(); }, 4000);
+        }
+
+       async function verificarEstadoCaja() {
+            try {
+                let res = await fetch('/api/caja/estado');
+                let data = await res.json();
+                const txt = document.getElementById('estado-caja-txt');
+                const headerTxt = document.getElementById('header-turno-txt');
+                const cont = document.getElementById('botones-caja-container');
+                const cajeroNombre = document.getElementById('cajero-nombre-txt');
+                const kpiVentas = document.getElementById('kpi-ventas-turno');
+                const btnQuickCaja = document.getElementById('btn-quick-caja');
+
+                if (data.abierta) {
+                    turnoActualGlobal = data.turno;
+                    headerTxt.innerHTML = `Turno Activo • ${data.turno.empleado}`;
+                    cajeroNombre.innerText = `Cajero: ${data.turno.empleado}`;
+                    txt.innerHTML = `🟢 Caja <strong class="text-tertiary font-bold">ABIERTA</strong> | Fondo inicial: <strong class="text-primary font-mono">$${(data.turno.monto_inicial || 0).toFixed(2)}</strong>`;
+                    cont.innerHTML = `<button onclick="abrirModalCaja('cerrar')" class="w-full py-3 rounded-xl bg-error-container hover:bg-error text-on-error font-bold text-xs uppercase tracking-wider shadow transition-all flex items-center justify-center gap-2"><span class="material-symbols-outlined text-[18px]">lock</span> Cerrar Turno de Caja</button>`;
+                    if (btnQuickCaja) btnQuickCaja.classList.add('hidden');
+                    
+                    // Capturamos el total en vivo del turno de forma segura (verificando múltiples nombres posibles que devuelva Flask)
+                    let ventasEnVivo = data.turno.total_ventas_en_vivo !== undefined ? data.turno.total_ventas_en_vivo : 
+                                       (data.turno.total_ventas !== undefined ? data.turno.total_ventas : 0);
+                    kpiVentas.innerText = `$${ventasEnVivo.toFixed(2)}`;
+                } else {
+                    turnoActualGlobal = null;
+                    headerTxt.innerHTML = `Caja Cerrada`;
+                    cajeroNombre.innerText = `Caja Inactiva`;
+                    txt.innerHTML = `🔴 Caja <strong class="text-error font-bold">CERRADA</strong>`;
+                    cont.innerHTML = `<button onclick="abrirModalCaja('abrir')" class="w-full py-3 rounded-xl bg-tertiary-container text-slate-950 font-bold text-xs uppercase tracking-wider shadow transition-all hover:bg-tertiary flex items-center justify-center gap-2"><span class="material-symbols-outlined text-[18px]">lock_open</span> Abrir Nuevo Turno</button>`;
+                    if (btnQuickCaja) {
+                        btnQuickCaja.classList.remove('hidden');
+                        btnQuickCaja.classList.add('flex');
+                    }
+                    kpiVentas.innerText = `$0.00`;
+                }
+                aplicarFiltroYMetricas();
+            } catch (e) { console.error("Error al verificar caja:", e); }
+        }
+
+        function abrirModalCaja(tipo) {
+            accionCajaActual = tipo;
+            const titulo = document.getElementById('modal-caja-titulo');
+            const label = document.getElementById('label-monto-caja');
+            const input = document.getElementById('input-monto-caja');
+            const campoEmpleado = document.getElementById('campo-empleado-container');
+            input.value = '';
+
+            if (tipo === 'abrir') {
+                titulo.innerHTML = '<span class="material-symbols-outlined text-primary">lock_open</span> Apertura de Caja (Fondo Inicial)';
+                label.innerText = 'EFECTIVO INICIAL EN CAJA ($):';
+                document.getElementById('input-empleado-caja').value = '';
+                campoEmpleado.style.display = 'flex';
+            } else {
+                titulo.innerHTML = '<span class="material-symbols-outlined text-error">lock</span> Cierre de Turno (Arqueo)';
+                label.innerText = 'EFECTIVO TOTAL CONTADO EN CAJA ($):';
+                campoEmpleado.style.display = 'none';
+            }
+            modalCajaInstance.show();
+        }
+
+        async function ejecutarAccionCaja() {
+            let monto = document.getElementById('input-monto-caja').value;
+            if (!monto) { mostrarAlerta("Ingresá un monto válido."); return; }
+
+            let endpoint = accionCajaActual === 'abrir' ? '/api/caja/abrir' : '/api/caja/cerrar';
+            let payload = accionCajaActual === 'abrir' 
+                ? { empleado: document.getElementById('input-empleado-caja').value.trim(), monto_inicial: parseFloat(monto) }
+                : { monto_final: parseFloat(monto) };
+
+            try {
+                let res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                let data = await res.json();
+                if (res.ok) {
+                    modalCajaInstance.hide();
+                    verificarEstadoCaja();
+                    
+                    if (accionCajaActual === 'cerrar' && data.resumen) {
+                        let r = data.resumen;
+                        document.getElementById('resumen-inicial').innerText = `$${r.monto_inicial.toFixed(2)}`;
+                        document.getElementById('resumen-ventas').innerText = `$${r.total_ventas.toFixed(2)}`;
+                        document.getElementById('resumen-esperado').innerText = `$${r.esperado_en_caja.toFixed(2)}`;
+                        document.getElementById('resumen-declarado').innerText = `$${r.declarado.toFixed(2)}`;
+                        
+                        let diffEl = document.getElementById('resumen-diferencia');
+                        diffEl.innerText = `$${r.diferencia.toFixed(2)}`;
+                        diffEl.className = `font-bold text-sm ${r.diferencia < 0 ? 'text-error' : r.diferencia > 0 ? 'text-tertiary' : 'text-white'}`;
+
+                        modalResumenInstance.show();
+                        cargarHistorialTurnos();
+                    } else {
+                        mostrarAlerta(data.mensaje, "success");
+                        cargarHistorialTurnos();
+                    }
+                } else { mostrarAlerta(data.error); }
+            } catch (e) { mostrarAlerta("Error de conexión con el servidor."); }
+        }
+
+        async function cargarHistorialTurnos() {
+            try {
+                let res = await fetch('/api/admin/turnos');
+                let turnos = await res.json();
+                const grilla = document.getElementById('grilla-turnos-caja');
+                if (!grilla) return;
+                grilla.innerHTML = '';
+
+                if (!turnos || turnos.length === 0) {
+                    grilla.innerHTML = `<div class="col-span-full text-center text-outline py-6 text-xs font-mono">No hay turnos registrados todavía.</div>`;
+                    return;
+                }
+
+                turnos.forEach(t => {
+                    let estadoBadge = t.estado === 'Abierta' 
+                        ? '<span class="px-2.5 py-1 rounded-lg bg-tertiary/20 text-tertiary font-mono text-[10px] font-bold">🟢 Abierta</span>' 
+                        : '<span class="px-2.5 py-1 rounded-lg bg-surface-container-highest text-outline font-mono text-[10px]">🔴 Cerrada</span>';
+                    
+                    grilla.innerHTML += `
+                        <div class="p-5 rounded-2xl bg-surface-container-high border border-outline/20 flex flex-col gap-3 shadow-md">
+                            <div class="flex justify-between items-center pb-2.5 border-b border-outline/10">
+                                <span class="font-bold text-white text-sm flex items-center gap-1.5"><span class="material-symbols-outlined text-primary text-[16px]">person</span> ${t.empleado}</span>
+                                ${estadoBadge}
+                            </div>
+                            <div class="text-xs text-outline font-mono flex flex-col gap-1">
+                                <div>Apertura: ${t.fecha_apertura}</div>
+                                <div>Cierre: ${t.fecha_cierre || 'En curso...'}</div>
+                            </div>
+                            <div class="flex justify-between text-xs pt-2 border-t border-outline/10 font-mono">
+                                <span class="text-outline">Fondo Inicial:</span><span class="text-white font-bold">$${t.monto_inicial.toFixed(2)}</span>
+                            </div>
+                            <div class="flex justify-between text-xs font-mono">
+                                <span class="text-outline">Ventas Efectivo:</span><span class="text-tertiary font-bold">$${t.total_ventas_efectivo.toFixed(2)}</span>
+                            </div>
+                            <div class="flex justify-between text-xs font-mono">
+                                <span class="text-outline">Declarado Cierre:</span><span class="text-white font-bold">${t.monto_final !== null ? '$' + t.monto_final.toFixed(2) : '-'}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (e) { console.error("Error al cargar turnos:", e); }
+        }
+
+        async function cargarProductosAdmin() {
+            try {
+                const res = await fetch('/api/productos');
+                const productos = await res.json();
+                todosLosProductosGlobal = productos || [];
+                actualizarSelectorCategorias(todosLosProductosGlobal);
+                renderizarTablaProductos(todosLosProductosGlobal);
+            } catch (e) { console.error("Error al cargar productos:", e); }
+        }
+
+        function actualizarSelectorCategorias(productos) {
+            let select = document.getElementById('filtro-categoria-admin');
+            if (!select) return;
+            let categorias = [...new Set(productos.map(p => p.categoria || 'General'))];
+            let actual = select.value;
+            select.innerHTML = '<option value="todos">📁 Todas las Categorías</option>';
+            categorias.forEach(cat => {
+                select.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+            select.value = actual;
+        }
+
+        function filtrarProductosPorCategoria() {
+            categoriaFiltroActual = document.getElementById('filtro-categoria-admin').value;
+            if (categoriaFiltroActual === 'todos') {
+                renderizarTablaProductos(todosLosProductosGlobal);
+            } else {
+                let filtrados = todosLosProductosGlobal.filter(p => (p.categoria || 'General') === categoriaFiltroActual);
+                renderizarTablaProductos(filtrados);
+            }
+        }
+
+        function renderizarTablaProductos(productos) {
+            const tbody = document.getElementById('tabla-productos');
+            document.getElementById('kpi-total-productos').innerText = todosLosProductosGlobal.length;
+            tbody.innerHTML = '';
+            
+            if (productos.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-outline py-8 text-xs font-mono">No hay productos en esta categoría.</td></tr>`;
+                return;
+            }
+            productos.forEach(p => {
+                let imagenSrc = p.imagen && p.imagen !== 'default_pancho.png' ? `/static/uploads/${p.imagen}` : '/static/uploads/default_pancho.png';
+                let switchChecked = p.disponible ? 'checked' : '';
+                let estadoBadge = p.disponible 
+                    ? '<span class="text-tertiary font-mono text-[11px] font-bold">Disponible</span>' 
+                    : '<span class="text-error font-mono text-[11px] font-bold">Agotado</span>';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-surface-container-high/60 transition-colors">
+                        <td class="py-3 px-5"><img src="${imagenSrc}" class="w-11 h-11 object-cover rounded-xl border border-outline/20 shadow-sm"></td>
+                        <td class="text-outline font-mono text-xs">#${p.id}</td>
+                        <td class="font-semibold text-white">${p.nombre}</td>
+                        <td><span class="px-2.5 py-1 rounded-lg bg-surface-container-highest text-white text-[11px] uppercase font-mono tracking-wider">${p.categoria || 'General'}</span></td>
+                        <td class="text-right font-mono text-primary font-extrabold">$${p.precio}</td>
+                        <td class="text-center">
+                            <label class="relative inline-flex items-center cursor-pointer justify-center gap-2">
+                                <input type="checkbox" ${switchChecked} onchange="toggleDisponibilidad(${p.id}, this.checked)" class="sr-only peer">
+                                <div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-tertiary"></div>
+                                ${estadoBadge}
+                            </label>
+                        </td>
+                        <td class="text-right flex items-center justify-end gap-2 py-3 px-4">
+                            <button onclick="abrirModalEditar(${p.id})" class="p-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-white transition-all shadow-sm" title="Editar producto">
+                                <span class="material-symbols-outlined text-[18px]">edit</span>
+                            </button>
+                            <button onclick="eliminarProductoAdmin(${p.id})" class="p-2 rounded-xl bg-error/10 hover:bg-error/20 text-error transition-all shadow-sm" title="Eliminar producto">
+                                <span class="material-symbols-outlined text-[18px]">delete</span>
+                            </button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        async function cargarHistorialVentas() {
+            try {
+                let res = await fetch('/api/admin/ventas');
+                let ventas = await res.json();
+                todasLasVentasGlobal = ventas || [];
+                aplicarFiltroYMetricas();
+            } catch (e) { console.error("Error al cargar ventas:", e); }
+        }
+
+        function filtrarPorPeriodo(periodo) {
+            periodoActual = periodo;
+            document.querySelectorAll('.btn-periodo').forEach(btn => {
+                if (btn.getAttribute('data-periodo') === periodo) {
+                    btn.className = 'px-3 py-1.5 rounded-lg bg-primary-container text-on-primary-container font-mono text-xs uppercase font-bold transition-all btn-periodo shadow-sm';
+                } else {
+                    btn.className = 'px-3 py-1.5 rounded-lg text-slate-300 hover:text-white font-mono text-xs uppercase transition-all btn-periodo';
+                }
+            });
+            aplicarFiltroYMetricas();
+        }
+
+        function obtenerFechaOperativa(fechaStr) {
+            if (!fechaStr) return 'Historial General';
+            let fecha = new Date(fechaStr);
+            fecha.setTime(fecha.getTime() - (6 * 3600 * 1000));
+            return fecha.toISOString().split('T')[0];
+        }
+
+        function aplicarFiltroYMetricas() {
+            let q = (document.getElementById('buscador-ventas')?.value || '').toLowerCase().trim();
+            let ahora = new Date();
+            let ahoraOperativo = new Date(ahora.getTime() - (6 * 3600 * 1000));
+
+            let ventasFiltradas = todasLasVentasGlobal.filter(v => {
+                let matchTexto = !q || (v.cliente_nombre && v.cliente_nombre.toLowerCase().includes(q)) || (v.numero_orden && v.numero_orden.toLowerCase().includes(q));
+                if (!matchTexto) return false;
+
+                if (periodoActual === 'todos') return true;
+                if (!v.fecha) return true;
+
+                let fechaVentaReal = new Date(v.fecha);
+                let fechaVentaOperativa = new Date(fechaVentaReal.getTime() - (6 * 3600 * 1000));
+
+                if (periodoActual === 'hoy') {
+                    // Si hay un turno abierto, filtramos opcionalmente por las ventas que coincidan con la fecha operativa o del turno
+                    return fechaVentaOperativa.toDateString() === ahoraOperativo.toDateString();
+                } else if (periodoActual === 'semana') {
+                    let hace7DiasOperativo = new Date(ahoraOperativo.getTime());
+                    hace7DiasOperativo.setDate(hace7DiasOperativo.getDate() - 7);
+                    return fechaVentaOperativa >= hace7DiasOperativo;
+                } else if (periodoActual === 'mes') {
+                    return fechaVentaOperativa.getMonth() === ahoraOperativo.getMonth() && fechaVentaOperativa.getFullYear() === ahoraOperativo.getFullYear();
+                }
+                return true;
+            });
+
+            calcularMetricasAvanzadas(ventasFiltradas);
+            renderizarVentasAgrupadas(ventasFiltradas);
+        }
+
+        function calcularMetricasAvanzadas(ventas) {
+            let totalRecaudado = 0;
+            let totalOrdenes = ventas.length;
+            
+            // REGLA ESTRICTA DE TURNO: 
+            // Si estamos en "Hoy Operativo" y la caja está CERRADA (sin turno activo), la recaudación del turno actual debe ser $0.00. 
+            // Si la caja está ABIIERTA, toma el total en vivo del turno.
+            if (periodoActual === 'hoy') {
+                if (turnoActualGlobal && turnoActualGlobal.abierta !== false) {
+                    totalRecaudado = turnoActualGlobal.total_ventas_en_vivo !== undefined ? turnoActualGlobal.total_ventas_en_vivo : 
+                                     (turnoActualGlobal.total_ventas !== undefined ? turnoActualGlobal.total_ventas : 0);
+                } else {
+                    // Caja cerrada en vista de hoy: no hay turno activo operando, por ende la recaudación del turno es 0 hasta que se abra caja
+                    totalRecaudado = 0;
+                    totalOrdenes = 0;
+                    ventas = []; // Limpiamos las ventas analíticas mostradas si el turno está cerrado
+                }
+            } else {
+                // Para períodos históricos (Semana, Mes, Todos), sumamos normalmente las ventas de los registros
+                totalRecaudado = ventas.reduce((acc, item) => acc + (item.total || 0), 0);
+            }
+
+            let pagos = { efectivo: {monto: 0, cant: 0}, mp: {monto: 0, cant: 0}, transferencia: {monto: 0, cant: 0} };
+            let conteoProductos = {};
+
+            ventas.forEach(v => {
+                let monto = v.total || 0;
+                let forma = (v.metodo_pago || v.tipo_pago || 'efectivo').toLowerCase();
+                
+                if (forma.includes('mercado') || forma.includes('mp') || forma.includes('tarjeta')) {
+                    pagos.mp.monto += monto; pagos.mp.cant++;
+                } else if (forma.includes('transferencia') || forma.includes('qr')) {
+                    pagos.transferencia.monto += monto; pagos.transferencia.cant++;
+                } else {
+                    pagos.efectivo.monto += monto; pagos.efectivo.cant++;
+                }
+
+                if (v.items && Array.isArray(v.items)) {
+                    v.items.forEach(item => {
+                        let nombre = item.nombre || item.producto || 'Producto';
+                        let cant = item.cantidad || 1;
+                        conteoProductos[nombre] = (conteoProductos[nombre] || 0) + cant;
+                    });
+                }
+            });
+
+            document.getElementById('metric-recaudacion-total').innerText = `$${totalRecaudado.toFixed(2)}`;
+            document.getElementById('metric-ordenes-count').innerText = (periodoActual === 'hoy' && !turnoActualGlobal) ? 'Caja cerrada (Sin turno activo)' : `${totalOrdenes} órdenes procesadas`;
+            
+            let ticketPromedio = totalOrdenes > 0 ? totalRecaudado / totalOrdenes : 0;
+            document.getElementById('metric-ticket-promedio').innerText = `$${ticketPromedio.toFixed(2)}`;
+
+            let metodoLider = 'Efectivo';
+            let maxMonto = pagos.efectivo.monto;
+            if (pagos.mp.monto > maxMonto) { metodoLider = 'Mercado Pago'; maxMonto = pagos.mp.monto; }
+            if (pagos.transferencia.monto > maxMonto) { metodoLider = 'Transferencia'; maxMonto = pagos.transferencia.monto; }
+            
+            document.getElementById('metric-metodo-lider').innerText = metodoLider;
+            document.getElementById('metric-metodo-sub').innerText = `$${maxMonto.toFixed(2)} recaudados`;
+
+            document.getElementById('pago-efectivo-monto').innerText = `$${pagos.efectivo.monto.toFixed(2)}`;
+            document.getElementById('pago-efectivo-cant').innerText = `${pagos.efectivo.cant} cobros`;
+            document.getElementById('pago-mp-monto').innerText = `$${pagos.mp.monto.toFixed(2)}`;
+            document.getElementById('pago-mp-cant').innerText = `${pagos.mp.cant} cobros`;
+            document.getElementById('pago-transf-monto').innerText = `$${pagos.transferencia.monto.toFixed(2)}`;
+            document.getElementById('pago-transf-cant').innerText = `${pagos.transferencia.cant} cobros`;
+
+            let topContenedor = document.getElementById('top-productos-lista');
+            if (topContenedor) {
+                let ordenados = Object.entries(conteoProductos).sort((a,b) => b[1] - a[1]).slice(0, 3);
+                if (ordenados.length === 0) {
+                    topContenedor.innerHTML = `<span class="text-xs text-outline font-mono italic">Sin ítems en el turno actual.</span>`;
+                } else {
+                    topContenedor.innerHTML = '';
+                    ordenados.forEach(([prod, cant], idx) => {
+                        let medallas = ['🥇', '🥈', '🥉'];
+                        topContenedor.innerHTML += `
+                            <div class="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-high font-mono text-xs border border-outline/10">
+                                <span class="text-white font-medium">${medallas[idx]} ${prod}</span>
+                                <span class="text-primary font-bold">${cant} un.</span>
+                            </div>`;
+                    });
+                }
+            }
+        }
+
+        async function eliminarProductoAdmin(id) {
+            if (confirm("¿Estás seguro de eliminar este producto del sistema?")) {
+                try {
+                    let res = await fetch(`/api/productos/${id}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        cargarProductosAdmin();
+                        mostrarAlerta("Producto eliminado con éxito", "success");
+                    } else {
+                        mostrarAlerta("No se pudo eliminar el producto.");
+                    }
+                } catch (e) {
+                    mostrarAlerta("Error de conexión con el servidor.");
+                }
+            }
+        }
+
+        function filtrarHistorialVentas() {
+            aplicarFiltroYMetricas();
+        }
+
+        function exportarReporteExcel() {
+            let csv = 'Orden,Cliente,Tipo,Total,Fecha\n';
+            todasLasVentasGlobal.forEach(v => {
+                csv += `"#${v.numero_orden}","${v.cliente_nombre || 'Cliente'}","${v.tipo_entrega}",${v.total},"${v.fecha || ''}"\n`;
+            });
+            let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Reporte_Ventas_PanchoEscobar_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            mostrarAlerta("¡Reporte exportado en formato CSV compatible con Excel!", "success");
+        }
+
+        function renderizarVentasAgrupadas(ventas) {
+            const contenedor = document.getElementById('acordeon-ventas-por-fecha');
+            if (!contenedor) return;
+            contenedor.innerHTML = '';
+            if (!ventas || ventas.length === 0) { contenedor.innerHTML = `<div class="text-center text-outline py-6 text-xs font-mono">No se encontraron ventas.</div>`; return; }
+
+            let grupos = {};
+            ventas.forEach(v => {
+                let fechaStr = obtenerFechaOperativa(v.fecha);
+                if (!grupos[fechaStr]) grupos[fechaStr] = [];
+                grupos[fechaStr].push(v);
+            });
+
+            let fechasOrdenadas = Object.keys(grupos).sort((a, b) => new Date(b) - new Date(a));
+
+            fechasOrdenadas.forEach(fecha => {
+                let lista = grupos[fecha];
+                let totalDia = lista.reduce((acc, item) => acc + item.total, 0);
+                
+                let filasHTML = '';
+                lista.forEach(v => {
+                    let horaExacta = '';
+                    if (v.fecha) {
+                        let d = new Date(v.fecha);
+                        if (!isNaN(d.getTime())) {
+                            horaExacta = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+                        }
+                    }
+
+                    filasHTML += `
+                        <tr class="text-xs hover:bg-surface-container-high/40 transition-colors">
+                            <td class="py-3 px-4 font-mono font-bold text-primary">#${v.numero_orden} <span class="text-[10px] text-outline font-normal">(${horaExacta} hs)</span></td>
+                            <td class="py-3 px-4 text-white font-medium">${v.cliente_nombre}</td>
+                            <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-lg bg-surface-container-highest text-outline font-mono text-[11px]">${v.tipo_entrega}</span></td>
+                            <td class="py-3 px-4 text-right font-mono text-tertiary font-bold">$${v.total.toFixed(2)}</td>
+                            <td class="py-3 px-4 text-center"><span class="px-2.5 py-1 rounded-lg bg-primary/20 text-primary uppercase font-mono text-[10px] font-bold">${v.estado}</span></td>
+                        </tr>`;
+                });
+
+                contenedor.innerHTML += `
+                    <details class="bg-surface-container-low rounded-2xl border border-outline/10 overflow-hidden group shadow-sm">
+                        <summary class="p-4 cursor-pointer flex justify-between items-center bg-surface-container-high font-mono text-xs hover:bg-surface-container-highest transition-colors">
+                            <span class="text-white font-bold flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[18px]">🌙</span> Jornada Comercial: <span class="text-primary">${fecha}</span> <span class="text-outline font-normal">(${lista.length} ventas)</span></span>
+                            <span class="text-tertiary font-bold text-sm">Total Turno/Día: $${totalDia.toFixed(2)}</span>
+                        </summary>
+                        <div class="p-4 overflow-x-auto bg-surface-container-lowest/40">
+                            <table class="w-full text-left">
+                                <thead><tr class="text-outline text-[10px] uppercase font-mono pb-2 border-b border-outline/10"><th>Orden / Hora</th><th>Cliente</th><th>Modalidad</th><th class="text-right">Total</th><th class="text-center">Estado</th></tr></thead>
+                                <tbody class="divide-y divide-outline/10">${filasHTML}</tbody>
+                            </table>
+                        </div>
+                    </details>`;
+            });
+        }
+
+        async function cargarAdicionales() {
+            try {
+                const res = await fetch('/api/adicionales');
+                const adicionales = await res.json();
+                const tbody = document.getElementById('tabla-adicionales');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+
+                if (!adicionales || adicionales.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-outline py-6 text-xs font-mono">No hay adicionales cargados.</td></tr>`;
+                    return;
+                }
+
+                adicionales.forEach(a => {
+                    let switchChecked = a.disponible ? 'checked' : '';
+                    let estadoBadge = a.disponible 
+                        ? '<span class="text-tertiary font-mono text-[11px] font-bold">Disponible</span>' 
+                        : '<span class="text-error font-mono text-[11px] font-bold">Agotado</span>';
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-surface-container-high/60 transition-colors">
+                            <td class="text-outline font-mono text-xs">#${a.id}</td>
+                            <td class="font-semibold text-white">${a.nombre}</td>
+                            <td class="text-primary font-mono font-extrabold">$${a.precio}</td>
+                            <td class="text-center">
+                                <label class="relative inline-flex items-center cursor-pointer justify-center gap-2">
+                                    <input type="checkbox" ${switchChecked} onchange="toggleDisponibilidadAdicional(${a.id}, this.checked)" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-tertiary"></div>
+                                    ${estadoBadge}
+                                </label>
+                            </td>
+                            <td class="text-right flex items-center justify-end gap-2 py-3 px-4">
+                                <button onclick="abrirEditarAdicional(${a.id}, '${a.nombre}', ${a.precio})" class="p-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-white transition-all shadow-sm" title="Editar adicional">
+                                    <span class="material-symbols-outlined text-[18px]">edit</span>
+                                </button>
+                                <button onclick="eliminarAdicional(${a.id})" class="p-2 rounded-xl bg-error/10 hover:bg-error/20 text-error transition-all shadow-sm" title="Eliminar adicional">
+                                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                                </button>
+                            </td>
+                        </tr>`;
+                });
+            } catch (e) { 
+                console.error("Error al cargar adicionales:", e); 
+            }
+        }
+
+        async function cargarZonasAdmin() {
+            try {
+                let res = await fetch('/api/zonas');
+                let zonas = await res.json();
+                document.getElementById('kpi-total-zonas').innerText = zonas.length;
+                let tbody = document.getElementById('tabla-zonas-admin');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+                zonas.forEach(z => {
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-surface-container-high/60 transition-colors">
+                            <td class="font-semibold text-white">${z.nombre}</td>
+                            <td class="text-primary font-mono font-extrabold">$${z.costo}</td>
+                            <td class="text-end"><button onclick="eliminarZonaAdmin(${z.id})" class="px-3.5 py-1.5 rounded-xl bg-error/20 text-error text-xs font-mono font-bold hover:bg-error/30 transition-all">Eliminar</button></td>
+                        </tr>`;
+                });
+            } catch (e) { console.error("Error al cargar zonas:", e); }
+        }
+
+        async function crearZonaAdmin() {
+            let nombre = document.getElementById('admin-zona-nombre').value.trim();
+            let costo = document.getElementById('admin-zona-costo').value;
+            if (!nombre || !costo) { mostrarAlerta("Completa el nombre y costo de la zona."); return; }
+            let res = await fetch('/api/zonas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre, costo }) });
+            if (res.ok) {
+                document.getElementById('admin-zona-nombre').value = '';
+                document.getElementById('admin-zona-costo').value = '';
+                cargarZonasAdmin();
+                mostrarAlerta("¡Zona creada con éxito!", "success");
+            }
+        }
+
+        async function eliminarZonaAdmin(id) {
+            if (confirm("¿Eliminar zona de envío?")) {
+                await fetch(`/api/zonas/${id}`, { method: 'DELETE' });
+                cargarZonasAdmin();
+            }
+        }
+
+        async function toggleDisponibilidad(id, nuevoEstado) {
+            try {
+                let res = await fetch(`/api/productos/${id}/disponibilidad`, { 
+                    method: 'PATCH', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ disponible: nuevoEstado }) 
+                });
+                if (res.ok) {
+                    cargarProductosAdmin();
+                    mostrarAlerta(nuevoEstado ? "¡Producto activado!" : "Producto marcado como agotado.", "success");
+                } else {
+                    mostrarAlerta("No se pudo cambiar la disponibilidad.");
+                }
+            } catch (e) {
+                mostrarAlerta("Error de conexión al actualizar estado.");
+            }
+        }
+
+        async function toggleDisponibilidadAdicional(id, nuevoEstado) {
+            try {
+                let res = await fetch(`/api/adicionales/${id}/disponibilidad`, { 
+                    method: 'PATCH', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ disponible: nuevoEstado }) 
+                });
+                if (res.ok) {
+                    cargarAdicionales();
+                    mostrarAlerta(nuevoEstado ? "¡Adicional activado!" : "Adicional marcado como agotado.", "success");
+                } else {
+                    mostrarAlerta("No se pudo cambiar el estado del adicional.");
+                }
+            } catch (e) {
+                mostrarAlerta("Error de conexión al actualizar adicional.");
+            }
+        }
+
+        async function eliminarAdicional(id) {
+            if (confirm("¿Eliminar este adicional?")) {
+                await fetch(`/api/adicionales/${id}`, { method: 'DELETE' });
+                cargarAdicionales();
+            }
+        }
+
+        function setupTagInput() {
+            const input = document.getElementById('edit-tag-input');
+            if (!input) return;
+            input.addEventListener('keydown', function(e) {
+                if (['Enter', ',', ' '].includes(e.key)) {
+                    e.preventDefault();
+                    let val = input.value.trim().replace(',', '');
+                    if (val && !editIngredientesList.includes(val)) {
+                        editIngredientesList.push(val);
+                        renderEditTags();
+                        input.value = '';
+                    }
+                }
+            });
+        }
+
+        function renderEditTags() {
+            const container = document.getElementById('edit-tags-container');
+            const input = document.getElementById('edit-tag-input');
+            container.querySelectorAll('.tag-chip').forEach(el => el.remove());
+            editIngredientesList.forEach((ing, idx) => {
+                let chip = document.createElement('span');
+                chip.className = 'tag-chip inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-surface-container-high text-white text-xs font-mono border border-outline/20 shadow-sm';
+                chip.innerHTML = `<span>${ing}</span><button type="button" class="text-outline hover:text-error ml-1 font-bold" onclick="editIngredientesList.splice(${idx}, 1); renderEditTags();">&times;</button>`;
+                container.insertBefore(chip, input);
+            });
+        }
+
+        async function abrirModalEditar(id) {
+            try {
+                let res = await fetch(`/api/productos/${id}`);
+                let p = await res.json();
+                document.getElementById('edit-id').value = p.id;
+                document.getElementById('edit-nombre').value = p.nombre || '';
+                document.getElementById('edit-precio').value = p.precio || 0;
+                document.getElementById('edit-categoria').value = p.categoria || '';
+                try { editIngredientesList = typeof p.ingredientes === 'string' ? JSON.parse(p.ingredientes) : (p.ingredientes || []); } catch(e) { editIngredientesList = []; }
+                renderEditTags();
+                modalEditarInstance.show();
+            } catch(e) { mostrarAlerta("No se pudo cargar el producto."); }
+        }
+
+        async function actualizarProducto(e) {
+            e.preventDefault();
+            let id = document.getElementById('edit-id').value;
+            let fd = new FormData();
+            fd.append('nombre', document.getElementById('edit-nombre').value.trim());
+            fd.append('precio', document.getElementById('edit-precio').value);
+            fd.append('categoria', document.getElementById('edit-categoria').value.trim());
+            fd.append('ingredientes', JSON.stringify(editIngredientesList));
+            let img = document.getElementById('edit-imagen').files[0];
+            if (img) fd.append('imagen', img);
+
+            let res = await fetch(`/api/productos/${id}`, { method: 'PUT', body: fd });
+            if (res.ok) {
+                modalEditarInstance.hide();
+                cargarProductosAdmin();
+                mostrarAlerta("¡Producto actualizado!", "success");
+            } else { mostrarAlerta("Error al actualizar producto."); }
+        }
+
+        function abrirModalAdicional() {
+            document.getElementById('adicional-id').value = '';
+            document.getElementById('adicional-nombre').value = '';
+            document.getElementById('adicional-precio').value = '';
+            modalAdicionalInstance.show();
+        }
+
+        async function guardarAdicional(e) {
+            e.preventDefault();
+            let id = document.getElementById('adicional-id').value;
+            let data = { nombre: document.getElementById('adicional-nombre').value, precio: document.getElementById('adicional-precio').value };
+            let res = await fetch(id ? `/api/adicionales/${id}` : '/api/adicionales', {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                modalAdicionalInstance.hide();
+                cargarAdicionales();
+                mostrarAlerta("¡Adicional guardado!", "success");
+            }
+        }
+    
+    function activarLinkMenu(elemento) {
+    // Quitamos los estilos activos a todos los enlaces del menú
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.className = "nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-surface-container-high hover:text-white transition-all text-sm font-medium";
+    });
+    
+    // Aplicamos los estilos activos exclusivamente al enlace presionado
+    elemento.className = "nav-link flex items-center gap-3 px-3.5 py-2.5 bg-primary-container text-on-primary-container font-bold rounded-xl shadow-md transition-all";
+}
+    
+    
+    
+    </script>
+</body>
+</html>
